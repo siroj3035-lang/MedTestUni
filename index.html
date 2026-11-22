@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>МедТест — тесты модуля</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f4f7f8;--card:#fff;--tx:#17252a;--mu:#5d6f75;--ac:#0e8c7f;--ac2:#e3f4f1;--bd:#dbe4e6;--ok:#1b8a4b;--okb:#e2f5e9;--er:#c0392b;--erb:#fbe8e5;--wa:#b7791f;--wab:#fdf3dc}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10181b;--card:#182327;--tx:#e6eef0;--mu:#93a6ab;--ac:#2fbfae;--ac2:#17332f;--bd:#273539;--ok:#4cc77f;--okb:#15301f;--er:#ef7a6c;--erb:#3a1c19;--wa:#e8b14f;--wab:#3a2e14}}
+:root[data-theme="dark"]{--bg:#10181b;--card:#182327;--tx:#e6eef0;--mu:#93a6ab;--ac:#2fbfae;--ac2:#17332f;--bd:#273539;--ok:#4cc77f;--okb:#15301f;--er:#ef7a6c;--erb:#3a1c19;--wa:#e8b14f;--wab:#3a2e14}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--card);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:8px;padding:10px 16px;flex-wrap:wrap}
+.logo{font-weight:700;font-size:18px;color:var(--ac);cursor:pointer;margin-right:auto}
+nav{display:flex;gap:4px;flex-wrap:wrap}
+nav button,.btn{font:inherit;border:1px solid var(--bd);background:var(--card);color:var(--tx);padding:8px 14px;border-radius:10px;cursor:pointer}
+nav button.on{background:var(--ac2);border-color:var(--ac);color:var(--ac)}
+.btn.pr{background:var(--ac);border-color:var(--ac);color:#fff;font-weight:600}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+main{max-width:980px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:26px;margin:8px 0 6px}h2{font-size:20px;margin:0 0 12px}
+.mu{color:var(--mu)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:18px;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.opt{display:block;width:100%;text-align:left;font:inherit;color:var(--tx);background:var(--card);border:1.5px solid var(--bd);border-radius:12px;padding:14px;cursor:pointer}
+.opt:hover{border-color:var(--ac)}.opt.sel{border-color:var(--ac);background:var(--ac2)}
+.opt b{display:block}.opt small{color:var(--mu)}
+.crumbs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;font-size:14px}
+.crumbs span{background:var(--ac2);color:var(--ac);padding:3px 10px;border-radius:99px;cursor:pointer}
+.steps{display:flex;gap:6px;margin-bottom:16px}.steps i{flex:1;height:6px;border-radius:3px;background:var(--bd)}.steps i.d{background:var(--ac)}
+input[type=text]{font:inherit;width:100%;padding:12px;border:1.5px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx)}
+.row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.timer{font-variant-numeric:tabular-nums;font-weight:700;background:var(--ac2);color:var(--ac);padding:6px 12px;border-radius:10px}
+.timer.low{background:var(--erb);color:var(--er)}
+.bar{height:8px;background:var(--bd);border-radius:4px;overflow:hidden;margin:12px 0}.bar div{height:100%;background:var(--ac)}
+.case{background:var(--wab);border-left:4px solid var(--wa);padding:12px;border-radius:8px;margin-bottom:12px}
+.badge{font-size:13px;padding:2px 10px;border-radius:99px;font-weight:600}
+.b-ok{background:var(--okb);color:var(--ok)}.b-wa{background:var(--wab);color:var(--wa)}.b-er{background:var(--erb);color:var(--er)}.b-no{background:var(--bd);color:var(--mu)}
+.big{font-size:44px;font-weight:800;color:var(--ac);line-height:1}
+.wr{border-left:4px solid var(--er);background:var(--erb);padding:12px;border-radius:8px;margin-bottom:10px}
+.wr .ok{color:var(--ok);font-weight:600}
+.empty{text-align:center;padding:28px 12px;color:var(--mu);border:2px dashed var(--bd);border-radius:14px}
+input[type=password]{font:inherit;width:100%;padding:12px;border:1.5px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0}.tabs button{font:inherit;border:1px solid var(--bd);background:var(--card);color:var(--tx);padding:8px 14px;border-radius:99px;cursor:pointer}.tabs button.on{background:var(--ac);border-color:var(--ac);color:#fff}
+.stat{display:flex;gap:10px;flex-wrap:wrap}.stat div{flex:1;min-width:120px;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;text-align:center}.stat b{display:block;font-size:26px;color:var(--ac)}
+.err{color:var(--er);min-height:22px;margin:8px 0}.fld{margin-bottom:10px}
+.qwrap{display:grid;grid-template-columns:1fr 250px;gap:14px;align-items:start}
+@media(max-width:700px){.qwrap{grid-template-columns:1fr}}
+.qnav{position:sticky;top:76px}@media(max-width:700px){.qnav{position:static}}
+.qg{display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:6px;margin-top:10px}
+.qn{font:inherit;font-size:14px;height:38px;border:1.5px solid var(--bd);background:var(--card);color:var(--tx);border-radius:8px;cursor:pointer;position:relative;padding:0}
+.qn.dn{background:var(--ac2);border-color:var(--ac)}
+.qn.fg{border-color:var(--wa);background:var(--wab)}
+.qn.fg::after{content:'\2691';position:absolute;top:-7px;right:-3px;font-size:13px;color:var(--wa)}
+.qn.cur{background:var(--ac);color:#fff;border-color:var(--ac)}
+.lg{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;font-size:13px;color:var(--mu)}
+.lg i.qn{display:inline-block;width:14px;height:14px;vertical-align:middle;margin-right:4px;border-radius:4px;cursor:default}.lg i.qn::after{display:none}
+select,textarea{font:inherit;width:100%;padding:10px;border:1.5px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx)}
+label{display:block;font-size:14px;color:var(--mu)}
+pre{white-space:pre-wrap;font-size:13px;background:var(--bg);padding:10px;border-radius:8px;margin:8px 0 0}
+.ok{color:var(--ok)}
+</style></head><body>
+<header><div class="logo" onclick="go('home')">🩺 МедТест</div><nav id="nav"></nav><span id="usr"></span></header>
+<main id="app"></main>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
+<script>
+var CFG_OK=!!(window.supabase&&window.SUPABASE_URL&&window.SUPABASE_KEY&&/^https:\/\//.test(window.SUPABASE_URL)&&window.SUPABASE_URL.indexOf('ВАШ')<0);
+var sb=CFG_OK?window.supabase.createClient(window.SUPABASE_URL,window.SUPABASE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}}):null;
+var SUBJ=[['Патанатомия','🔬'],['Патофизиология','🧬'],['Фармакология','💊'],['Гигиена','🧼']];
+var FAC=['Лечебное дело','Педиатрия','Стоматология','Медико-профилактическое дело'];
+var LANG=[['ru','Русский'],['uz','O‘zbekcha']];
+var $=function(i){return document.getElementById(i)};
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function ld(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
+function sv(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+var token=ld('mt_token',null),user=ld('mt_user',null),sel=ld('mt_sel',{}),view='home',Q=null,tmr=null,authUp=false,authErr='',pSubj=null,pTab='solved',TOP=[],ST=null;
+
+async function rpc(fn,args){if(!sb)throw new Error('Сайт не настроен: заполните config.js');var r=await sb.rpc(fn,args);
+ if(r.error){var m=r.error.message||'Ошибка сервера';if(/Сессия истекла/.test(m)&&token){logout();go('auth')}throw new Error(m)}return r.data}
+
+function go(v){clearInterval(tmr);if(v=='progress')ST=null;view=v;render();window.scrollTo(0,0)}
+function nav(){var t=[['home','Главная'],['select','Тесты'],['progress','Мой прогресс']];if(user&&user.is_admin)t.push(['admin','Админ']);
+ $('nav').innerHTML=t.map(function(x){return '<button class="'+(view==x[0]?'on':'')+'" onclick="go(\''+x[0]+'\')">'+x[1]+'</button>'}).join('');
+ $('usr').innerHTML=user?'<button class="btn" onclick="logout();go(\'home\')">'+esc(user.name)+' · выйти</button>':'<button class="btn pr" onclick="go(\'auth\')">Войти</button>'}
+function logout(){if(token&&sb)sb.rpc('api_logout',{p_token:token}).then(function(){},function(){});token=null;user=null;pSubj=null;ST=null;sv('mt_token',null);sv('mt_user',null)}
+function render(){nav();if(!sb){$('app').innerHTML='<div class="card"><h2>Сайт ещё не подключён к базе данных</h2><p class="mu">Откройте файл <b>config.js</b> и вставьте Project URL и publishable key из Supabase (подробности в README).</p></div>';return}var f={home:vHome,auth:vAuth,select:vSelect,modes:vModes,quiz:vQuiz,result:vResult,progress:vProgress,admin:vAdmin};f[view]()}
+
+function vHome(){$('app').innerHTML='<h1>Готовься к модулю без хаоса</h1><p class="mu">Тесты по темам, время решения, разбор ошибок и список тем, которые стоит повторить.</p>'+
+ '<div class="grid" style="margin:16px 0"><div class="card"><b>1. Выбери тему</b><br><span class="mu">Факультет → курс → язык → предмет → тема</span></div><div class="card"><b>2. Выбери режим</b><br><span class="mu">Тесты, ситуационные или контроль на 25 минут</span></div><div class="card"><b>3. Смотри прогресс</b><br><span class="mu">Какие темы повторить, а какие уже усвоены</span></div></div>'+
+ (user?'<button class="btn pr" onclick="go(\'select\')">Перейти к тестам</button>':'<button class="btn pr" onclick="go(\'auth\')">Зарегистрироваться</button>')}
+
+function vAuth(){var u=authUp;
+ $('app').innerHTML='<div class="card" style="max-width:420px;margin:30px auto"><div class="tabs" style="margin-top:0"><button class="'+(u?'':'on')+'" onclick="authUp=false;authErr=\'\';vAuth()">Вход</button><button class="'+(u?'on':'')+'" onclick="authUp=true;authErr=\'\';vAuth()">Регистрация</button></div>'+
+ (u?'<div class="fld"><input type="text" id="nm" placeholder="Фамилия и имя" maxlength="60"></div>':'')+
+ '<div class="fld"><input type="text" id="lg" placeholder="Логин (латиница, цифры, _ . -)" maxlength="30" autocapitalize="off" autocomplete="username"></div><div class="fld"><input type="password" id="pw" placeholder="Пароль (не короче 6 символов)" maxlength="72" autocomplete="'+(u?'new-password':'current-password')+'" onkeydown="if(event.key===\'Enter\')doAuth()"></div>'+
+ '<div class="err" id="er">'+esc(authErr)+'</div><button class="btn pr" id="ab" onclick="doAuth()">'+(u?'Создать аккаунт':'Войти')+'</button></div>'}
+async function doAuth(){var u=authUp,lg=$('lg').value.trim().toLowerCase(),pw=$('pw').value,nm=u?$('nm').value.trim():'',er=$('er'),b=$('ab');
+ function bad(t){authErr=t;er.textContent=t}
+ if(u&&!nm)return bad('Введите фамилию и имя');
+ if(!/^[a-z0-9_.-]{3,30}$/.test(lg))return bad('Логин: 3–30 символов, латиница, цифры, _ . -');
+ if(pw.length<6)return bad('Пароль должен быть не короче 6 символов');
+ b.disabled=true;er.textContent='';b.textContent='Подождите…';
+ try{var r=await (u?rpc('api_register',{p_login:lg,p_password:pw,p_name:nm}):rpc('api_login',{p_login:lg,p_password:pw}));if(r.error)throw new Error(r.error);
+  token=r.token;user=r.user;sv('mt_token',token);sv('mt_user',user);authErr='';go('select')}
+ catch(e){bad(e.message);b=$('ab');if(b){b.disabled=false;b.textContent=authUp?'Создать аккаунт':'Войти'}}}
+
+var STEPS=['fac','course','lang','subj','topic'];
+function topic(){return TOP.filter(function(t){return t.id==sel.topic})[0]||{name:'…',tests:0,cases:0}}
+function show(k){if(k=='fac')return FAC[sel.fac];if(k=='course')return sel.course+' курс';if(k=='lang')return sel.lang=='ru'?'Русский':'O‘zbekcha';if(k=='topic')return topic().name;return sel[k]}
+function opt(k,v,t,s){return '<button class="opt" onclick="pick(\''+k+'\',\''+v+'\')"><b>'+esc(t)+'</b>'+(s?'<small>'+s+'</small>':'')+'</button>'}
+function pick(k,v){sel[k]=(k=='fac'||k=='course')?+v:v;if(k=='subj'||k=='lang'){delete sel.topic;TOP=[]}sv('mt_sel',sel);render()}
+function reset(k){var i=STEPS.indexOf(k);STEPS.slice(i).forEach(function(x){delete sel[x]});sv('mt_sel',sel);go('select')}
+function loadTopics(then){return rpc('api_topics',{p_token:token,p_subject:sel.subj,p_lang:sel.lang,p_faculty:FAC[sel.fac],p_course:sel.course}).then(function(r){TOP=r;if(then)then()}).catch(function(e){var g=$('tg');if(g)g.innerHTML='<div class="empty">'+esc(e.message)+'</div>'})}
+function drawTopics(){var g=$('tg');if(!g)return;g.innerHTML=TOP.length?'<div class="grid">'+TOP.map(function(t){return opt('topic',t.id,t.name,'Тестов: '+t.tests+' · Ситуаций: '+t.cases)}).join('')+'</div>':'<div class="empty">📚 Темы по предмету «'+esc(sel.subj)+'» скоро появятся</div>'}
+function vSelect(){
+ if(!user)return go('auth');
+ var st=STEPS.findIndex(function(k){return sel[k]==null}),done=st<0?5:st,h='';
+ var lab={fac:'Факультет',course:'Курс',lang:'Язык',subj:'Предмет',topic:'Тема'};
+ if(st<0)return go('modes');
+ h+='<div class="steps">'+STEPS.map(function(k,i){return '<i class="'+(i<done?'d':'')+'"></i>'}).join('')+'</div>';
+ h+='<div class="crumbs">'+STEPS.filter(function(k){return sel[k]!=null}).map(function(k){return '<span onclick="reset(\''+k+'\')" title="Изменить">'+lab[k]+': '+esc(show(k))+' ✎</span>'}).join('')+'</div>';
+ var k=STEPS[st];h+='<h2>Выберите: '+lab[k].toLowerCase()+'</h2>';
+ if(k=='fac')h+='<div class="grid">'+FAC.map(function(x,i){return opt('fac',i,x)}).join('')+'</div>';
+ if(k=='course')h+='<div class="grid">'+[1,2,3,4,5,6].map(function(x){return opt('course',x,x+' курс')}).join('')+'</div>';
+ if(k=='lang')h+='<div class="grid">'+LANG.map(function(x){return opt('lang',x[0],x[1])}).join('')+'</div>';
+ if(k=='subj')h+='<div class="grid">'+SUBJ.map(function(x){return opt('subj',x[0],x[1]+' '+x[0])}).join('')+'</div><p class="mu" style="margin-top:12px">Остальные предметы появятся позже.</p>';
+ if(k=='topic'){h+='<div id="tg"><p class="mu">Загрузка…</p></div>';$('app').innerHTML=h;return loadTopics(drawTopics)}
+ $('app').innerHTML=h}
+
+var MODES=[['test','📝 Тестовые вопросы','Без лимита времени, время решения показывается'],['case','🧑‍⚕️ Ситуационные вопросы','Клинические задачи, без лимита времени'],['control','⏱ Контролирующий режим','Тесты + ситуационные, лимит 25 минут']];
+function vModes(){var t=topic();
+ if(!t.id){$('app').innerHTML='<p class="mu">Загрузка…</p>';return loadTopics(function(){if(!topic().id){delete sel.topic;sv('mt_sel',sel);return go('select')}vModes()})}
+ var cnt={test:t.tests,case:t.cases,control:t.tests+t.cases};
+ $('app').innerHTML='<div class="crumbs"><span onclick="reset(\'topic\')">← '+esc(sel.subj)+' · '+esc(t.name)+'</span></div><h2>Режим тестирования</h2>'+
+ MODES.map(function(m){var n=cnt[m[0]];return '<button class="opt" style="margin-bottom:10px;'+(n?'':'opacity:.5')+'" '+(n?'':'disabled')+' onclick="start(\''+m[0]+'\')"><b>'+m[1]+'</b><small>'+m[2]+' · вопросов: '+n+'</small></button>'}).join('')+
+ (cnt.control?'':'<div class="empty">Для выбранного языка вопросов пока нет</div>')}
+
+async function start(m){try{var r=await rpc('api_questions',{p_token:token,p_topic:+sel.topic,p_mode:m,p_lang:sel.lang});if(!r.length)return;
+ Q={m:m,qs:r.map(function(x){return{id:x.id,c:x.case,q:x.text,o:x.options}}),i:0,ans:[],fl:[],t0:Date.now(),lim:m=='control'?1500:0};
+ clearInterval(tmr);view='quiz';render();tmr=setInterval(tick,500)}catch(e){alert(e.message)}}
+function fmt(s){s=Math.max(0,Math.floor(s));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
+function tick(){if(!Q||Q.done)return;var e=(Date.now()-Q.t0)/1000,el=$('tm');if(!el)return;
+ if(Q.lim){var r=Q.lim-e;el.textContent='Осталось '+fmt(r);el.className='timer'+(r<180?' low':'');if(r<=0)finish()}else el.textContent='Время '+fmt(e)}
+function vQuiz(){var q=Q.qs[Q.i],n=Q.qs.length,a=Q.ans[Q.i],fl=!!Q.fl[Q.i],aN=Q.ans.filter(function(x){return x!=null}).length,fN=Q.fl.filter(Boolean).length;
+ var nv='<div class="card qnav"><div class="row"><b>Вопросы</b><span class="mu">'+aN+' из '+n+'</span></div><div class="qg">'+Q.qs.map(function(x,i){return '<button class="qn'+(i==Q.i?' cur':'')+(Q.ans[i]!=null?' dn':'')+(Q.fl[i]?' fg':'')+'" onclick="goQ('+i+')">'+(i+1)+'</button>'}).join('')+'</div>'+
+ '<div class="lg"><span><i class="qn dn"></i>есть ответ</span><span><i class="qn fg"></i>флажок</span><span><i class="qn"></i>нет ответа</span></div>'+
+ (fN?'<button class="btn" style="width:100%;margin-top:12px" onclick="nextFlag()">⚑ К отмеченным ('+fN+')</button>':'')+
+ '<button class="btn" style="width:100%;margin-top:8px" onclick="tryFinish()">Завершить тест</button></div>';
+ $('app').innerHTML='<div class="row"><b>Вопрос '+(Q.i+1)+' из '+n+'</b><span class="timer" id="tm"></span></div><div class="bar"><div style="width:'+(aN/n*100)+'%"></div></div><div class="qwrap"><div class="card">'+
+ (q.c?'<div class="case">'+esc(q.c)+'</div>':'')+'<h2>'+esc(q.q)+'</h2>'+
+ q.o.map(function(o,i){return '<button class="opt'+(a===i?' sel':'')+'" style="margin-bottom:8px" onclick="pickA('+i+')">'+'ABCDEF'[i]+'. '+esc(o)+'</button>'}).join('')+
+ '<div class="row" style="margin-top:8px"><button class="btn" '+(Q.i==0?'disabled':'')+' onclick="goQ(Q.i-1)">← Назад</button>'+
+ '<button class="btn" style="'+(fl?'background:var(--wab);border-color:var(--wa);color:var(--wa);font-weight:600':'')+'" onclick="flagQ()">⚑ '+(fl?'Снять флажок':'Не уверен')+'</button>'+
+ '<button class="btn pr" onclick="nextQ()">'+(Q.i==n-1?'Завершить':'Далее →')+'</button></div></div>'+nv+'</div>';tick()}
+function goQ(i){if(i<0||i>=Q.qs.length)return;Q.i=i;vQuiz();window.scrollTo(0,0)}
+function pickA(i){Q.ans[Q.i]=i;vQuiz()}
+function flagQ(){Q.fl[Q.i]=!Q.fl[Q.i];vQuiz()}
+function nextFlag(){var n=Q.qs.length;for(var k=1;k<=n;k++){var j=(Q.i+k)%n;if(Q.fl[j])return goQ(j)}}
+function nextQ(){if(Q.i<Q.qs.length-1)goQ(Q.i+1);else tryFinish()}
+function tryFinish(){var u=0,f=0;Q.qs.forEach(function(x,i){if(Q.ans[i]==null)u++;if(Q.fl[i])f++});var m='';if(u)m+='Без ответа: '+u+'. ';if(f)m+='С флажком: '+f+'. ';if(!m||confirm(m+'Завершить тест?'))finish()}
+
+async function finish(){if(!Q||Q.done)return;clearInterval(tmr);Q.done=true;Q.el=Math.min((Date.now()-Q.t0)/1000,Q.lim||1e9);
+ $('app').innerHTML='<p class="mu">Проверяем ответы…</p>';
+ try{var r=await rpc('api_submit',{p_token:token,p_topic:+sel.topic,p_mode:Q.m,p_lang:sel.lang,p_seconds:Math.round(Q.el),p_answers:Q.qs.map(function(q,i){return{questionId:q.id,chosen:Q.ans[i]==null?null:Q.ans[i]}})});
+  Q.ok=r.correct;Q.pct=r.pct;Q.wrong=r.wrong.map(function(w){return{q:{c:w.case,q:w.text,o:w.options,a:w.correct},u:w.chosen}});ST=null;view='result';render()}
+ catch(e){$('app').innerHTML='<div class="card"><h2>Не удалось сохранить результат</h2><p class="mu">'+esc(e.message)+'</p><button class="btn pr" onclick="Q.done=false;finish()">Повторить отправку</button></div>'}}
+function vResult(){var n=Q.qs.length,c=Q.pct>=80?'b-ok':Q.pct>=60?'b-wa':'b-er',tx=Q.pct>=80?'Хорошо усвоено':Q.pct>=60?'Стоит повторить':'Нужно повторить тему';
+ $('app').innerHTML='<div class="card"><div class="row"><div><div class="big">'+Q.pct+'%</div><p class="mu" style="margin:6px 0 0">Правильных ответов: <b>'+Q.ok+'</b> из '+n+' · Время: <b>'+fmt(Q.el)+'</b></p></div><span class="badge '+c+'">'+tx+'</span></div></div>'+
+ (Q.wrong.length?'<h2>Ошибки ('+Q.wrong.length+')</h2>'+Q.wrong.map(function(w){return '<div class="wr">'+(w.q.c?'<div class="mu" style="margin-bottom:4px">'+esc(w.q.c)+'</div>':'')+'<b>'+esc(w.q.q)+'</b><div>Ваш ответ: '+(w.u==null?'<i>нет ответа</i>':esc(w.q.o[w.u]))+'</div><div class="ok">Правильно: '+esc(w.q.o[w.q.a])+'</div></div>'}).join(''):'<div class="card"><b>🎉 Ошибок нет!</b></div>')+
+ '<div class="row" style="margin-top:12px"><button class="btn" onclick="go(\'modes\')">Другой режим</button><button class="btn pr" onclick="start(Q.m)">Пройти ещё раз</button></div>'}
+
+
+var ML={test:'Тесты',case:'Ситуационные',control:'Контроль'};
+function prow(a){var c=a.last>=85?'b-ok':a.last>=60?'b-wa':'b-er',s=a.last>=85?'Отлично':a.last>=60?'Можно лучше':'Повторить',col=a.last>=85?'var(--ok)':a.last>=60?'var(--wa)':'var(--er)';
+ return '<div class="card"><div class="row"><b>'+esc(a.name)+'</b><span class="badge '+c+'">'+s+'</span></div><div class="bar"><div style="width:'+a.last+'%;background:'+col+'"></div></div><div class="mu" style="font-size:14px">Последний результат: <b>'+a.last+'%</b> · лучший: '+a.best+'% · ошибок: <b>'+a.wr+'</b> из '+a.tot+' ('+a.err+'%) · попыток: '+a.attempts+'</div><div class="mu" style="font-size:14px;margin-top:4px">'+Object.keys(a.modes).map(function(m){return ML[m]+' '+a.modes[m].last+'%'}).join(' · ')+'</div></div>'}
+function vProgress(){if(!user)return go('auth');
+ if(ST===null){$('app').innerHTML='<p class="mu">Загрузка…</p>';return rpc('api_stats',{p_token:token}).then(function(r){ST=r;ST.forEach(function(t){t.err=t.tot?Math.round(t.wr/t.tot*100):0});vProgress()}).catch(function(e){$('app').innerHTML='<div class="empty">'+esc(e.message)+'</div>'})}
+ var h='<h1>Мой прогресс</h1>';
+ if(!pSubj){h+='<p class="mu">Выберите предмет, чтобы увидеть статистику по темам.</p><div class="grid">'+SUBJ.map(function(x){var ts=ST.filter(function(t){return t.subject==x[0]}),d=ts.filter(function(t){return t.attempts>0}).length;
+  return '<button class="opt" onclick="pSubj=\''+x[0]+'\';pTab=\'solved\';vProgress()"><b>'+x[1]+' '+x[0]+'</b><small>Решено тем: '+d+' из '+ts.length+'</small></button>'}).join('')+'</div>';return $('app').innerHTML=h}
+ var ts=ST.filter(function(t){return t.subject==pSubj}),A=ts.filter(function(t){return t.attempts>0}),N=ts.filter(function(t){return!t.attempts}),G=A.filter(function(a){return a.last>=85}),E=A.filter(function(a){return a.wr>0}).sort(function(x,y){return y.err-x.err});
+ h+='<div class="crumbs"><span onclick="pSubj=null;vProgress()">← Все предметы</span><span style="cursor:default">'+esc(pSubj)+'</span></div>';
+ h+='<div class="stat"><div><b>'+A.length+' / '+ts.length+'</b>тем решено</div><div><b>'+G.length+'</b>на отлично</div><div><b>'+A.filter(function(a){return a.last<60}).length+'</b>нужно повторить</div></div>';
+ var T=[['solved','Решённые ('+A.length+')'],['errors','Больше всего ошибок'],['great','Отлично ('+G.length+')'],['new','Не начаты ('+N.length+')']];
+ h+='<div class="tabs">'+T.map(function(t){return '<button class="'+(pTab==t[0]?'on':'')+'" onclick="pTab=\''+t[0]+'\';vProgress()">'+t[1]+'</button>'}).join('')+'</div>';
+ var L=pTab=='solved'?A.slice().sort(function(x,y){return String(y.lastAt).localeCompare(String(x.lastAt))}):pTab=='errors'?E:pTab=='great'?G.slice().sort(function(x,y){return y.last-x.last}):null;
+ if(L)h+=L.length?'<p class="mu" style="font-size:14px">'+(pTab=='errors'?'Темы отсортированы по доле неверных ответов: сверху те, что стоит повторить.':pTab=='great'?'Последний результат 85% и выше.':'Сначала недавно решённые.')+'</p>'+L.map(prow).join(''):'<div class="empty">'+(pTab=='great'?'Пока нет тем с результатом 85% и выше':pTab=='errors'?'Ошибок пока нет':'Вы ещё не решали темы этого предмета')+'</div>';
+ else h+=N.length?N.map(function(t){return '<div class="card row"><b>'+esc(t.name)+'</b><span class="badge b-no">Не начата</span></div>'}).join(''):'<div class="empty">'+(ts.length?'Вы начали все темы':'Темы по этому предмету скоро появятся')+'</div>';
+ $('app').innerHTML=h}
+/* ===== Админ-панель ===== */
+var AD={subj:'Патанатомия',lang:'ru',course:'',topic:'',text:'',replace:false,list:null,open:null,qs:[],msg:'',bad:false};
+function parseBank(text){var out=[],errs=[];
+ text.replace(/\r/g,'').split(/\n\s*\n/).forEach(function(b){
+  var L=b.split('\n').map(function(x){return x.trim()}).filter(Boolean);if(!L.length)return;
+  var cs=null,qt=[],op=[],ans=-1,multi=false,n=out.length+errs.length+1;
+  L.forEach(function(l,i){var m=i>0&&/^([+-])\s*(.+)$/.exec(l);
+   if(m){op.push(m[2]);if(m[1]=='+'){if(ans>=0)multi=true;ans=op.length-1}}
+   else if(i==0&&/^ситуация\s*[:.]/i.test(l))cs=l.replace(/^ситуация\s*[:.]\s*/i,'');
+   else qt.push(l)});
+  var q=qt.join(' '),e=!q?'нет текста вопроса':op.length<2?'нужно минимум 2 варианта':op.length>6?'не больше 6 вариантов':ans<0?'не отмечен правильный вариант (+)':multi?'правильных вариантов больше одного':'';
+  if(e)errs.push('Вопрос '+n+': '+e+' («'+L[0].slice(0,40)+'»)');else out.push({type:cs!==null?'case':'test',case:cs,q:q,options:op,answer:ans})});
+ return{qs:out,errs:errs}}
+function fail(e){alert(e.message||e)}
+function vAdmin(){if(!user||!user.is_admin)return go('home');
+ if(AD.list===null){$('app').innerHTML='<p class="mu">Загрузка…</p>';return rpc('api_admin_topics',{p_token:token}).then(function(r){AD.list=r;vAdmin()}).catch(function(e){$('app').innerHTML='<div class="empty">'+esc(e.message)+'</div>'})}
+ var ex=AD.list.filter(function(t){return t.subject==AD.subj});
+ var h='<h1>Панель администратора</h1><p class="mu">Добавленные темы и вопросы сразу появляются у студентов.</p><div class="card"><h2>Добавить вопросы</h2><div class="grid" style="margin-bottom:12px">'+
+ '<label>Предмет<select onchange="AD.subj=this.value;vAdmin()">'+SUBJ.map(function(x){return '<option'+(x[0]==AD.subj?' selected':'')+'>'+x[0]+'</option>'}).join('')+'</select></label>'+
+ '<label>Язык<select onchange="AD.lang=this.value">'+LANG.map(function(x){return '<option value="'+x[0]+'"'+(x[0]==AD.lang?' selected':'')+'>'+x[1]+'</option>'}).join('')+'</select></label>'+
+ '<label>Курс<select onchange="AD.course=this.value"><option value="">Все курсы</option>'+[1,2,3,4,5,6].map(function(c){return '<option value="'+c+'"'+(AD.course==c?' selected':'')+'>'+c+' курс</option>'}).join('')+'</select></label></div>'+
+ '<label>Тема (выберите из списка или введите новую)<input type="text" list="tl" value="'+esc(AD.topic)+'" oninput="AD.topic=this.value" placeholder="Например: Некроз" maxlength="200"></label><datalist id="tl">'+ex.map(function(t){return '<option value="'+esc(t.name)+'">'}).join('')+'</datalist>'+
+ '<label style="margin-top:12px">Вопросы<textarea rows="14" oninput="AD.text=this.value" placeholder="Вставьте вопросы в формате из подсказки ниже">'+esc(AD.text)+'</textarea></label>'+
+ '<details style="margin:10px 0"><summary style="cursor:pointer">Как оформлять вопросы</summary><pre>Текст вопроса\n- неправильный вариант\n+ правильный вариант\n- неправильный вариант\n\nСитуация: описание клинической ситуации\nТекст вопроса по ситуации\n+ правильный вариант\n- неправильный вариант</pre><p class="mu" style="font-size:14px">Вопросы разделяются пустой строкой. «+» отмечает единственный правильный вариант, «−» остальные (от 2 до 6 вариантов). Если вопрос начинается со слова «Ситуация:», он считается ситуационным, иначе тестовым.</p></details>'+
+ '<label style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><input type="checkbox"'+(AD.replace?' checked':'')+' onchange="AD.replace=this.checked"> Заменить уже добавленные вопросы этой темы на этом языке</label>'+
+ '<div class="row"><button class="btn" onclick="adminCheck()">Проверить</button><button class="btn pr" id="a_b" onclick="adminSend()">Загрузить в сайт</button></div><div class="'+(AD.bad?'err':'ok')+'" id="a_m" style="margin-top:10px">'+esc(AD.msg)+'</div></div>'+
+ '<h2 style="margin-top:20px">Темы предмета «'+esc(AD.subj)+'»</h2>'+(ex.length?ex.map(function(t){var o=AD.open==t.id;
+  return '<div class="card"><div class="row"><div><b>'+esc(t.name)+'</b><br><span class="mu" style="font-size:14px">'+(t.course?t.course+' курс · ':'')+'Рус: '+t.ru_tests+' тестов, '+t.ru_cases+' ситуаций · Узб: '+t.uz_tests+' тестов, '+t.uz_cases+' ситуаций</span></div><div><button class="btn" onclick="adminOpen('+t.id+')">'+(o?'Скрыть':'Вопросы')+'</button> <button class="btn" onclick="adminDelT('+t.id+')">Удалить тему</button></div></div>'+
+  (o?AD.qs.map(function(q){return '<div style="border-top:1px solid var(--bd);margin-top:10px;padding-top:10px"><span class="badge b-no">'+(q.lang=='ru'?'Рус':'Узб')+' · '+(q.type=='case'?'ситуация':'тест')+'</span>'+(q.case?'<div class="case" style="margin:8px 0">'+esc(q.case)+'</div>':'')+'<div><b>'+esc(q.text)+'</b></div>'+q.options.map(function(x,i){return '<div'+(i==q.answer?' class="ok"':' class="mu"')+'>'+(i==q.answer?'✔ ':'• ')+esc(x)+'</div>'}).join('')+'<button class="btn" style="margin-top:8px" onclick="adminDelQ('+q.id+')">Удалить вопрос</button></div>'}).join('')||'<p class="mu">Вопросов нет</p>':'')+'</div>'}).join(''):'<div class="empty">В этом предмете пока нет тем</div>');
+ $('app').innerHTML=h}
+function adminCheck(){var p=parseBank(AD.text),m=$('a_m');if(!AD.text.trim()){AD.bad=true;AD.msg='Вставьте вопросы';m.className='err';m.textContent=AD.msg;return p}
+ var c=p.qs.filter(function(q){return q.type=='case'}).length;AD.bad=p.errs.length>0;
+ AD.msg=(p.errs.length?'Исправьте ошибки:\n'+p.errs.join('\n')+'\n':'')+'Распознано вопросов: '+p.qs.length+' (тестовых '+(p.qs.length-c)+', ситуационных '+c+')';
+ m.className=AD.bad?'err':'ok';m.style.whiteSpace='pre-wrap';m.textContent=AD.msg;return p}
+async function adminSend(){var t=AD.topic.trim();if(!t){AD.bad=true;AD.msg='Введите тему';var m=$('a_m');m.className='err';m.textContent=AD.msg;return}
+ var p=adminCheck();if(p.errs.length||!p.qs.length)return;var b=$('a_b');b.disabled=true;b.textContent='Загрузка…';
+ try{await rpc('api_admin_import',{p_token:token,p_data:{subject:AD.subj,topic:t,course:AD.course?+AD.course:null,faculty:null,lang:AD.lang,replace:AD.replace,questions:p.qs}});
+  AD.msg='✔ Добавлено вопросов: '+p.qs.length+' (тема «'+t+'»)';AD.bad=false;AD.text='';AD.list=null;vAdmin()}
+ catch(e){b.disabled=false;b.textContent='Загрузить в сайт';AD.bad=true;AD.msg=e.message;var m2=$('a_m');m2.className='err';m2.textContent=AD.msg}}
+function adminOpen(id){if(AD.open==id){AD.open=null;return vAdmin()}rpc('api_admin_questions',{p_token:token,p_topic:id}).then(function(r){AD.open=id;AD.qs=r;vAdmin()}).catch(fail)}
+function adminDelQ(id){if(!confirm('Удалить вопрос?'))return;rpc('api_admin_delete_question',{p_token:token,p_id:id}).then(function(){AD.qs=AD.qs.filter(function(q){return q.id!=id});AD.list=null;vAdmin()}).catch(fail)}
+function adminDelT(id){if(!confirm('Удалить тему вместе со всеми вопросами и результатами студентов по ней?'))return;rpc('api_admin_delete_topic',{p_token:token,p_id:id}).then(function(){AD.open=null;AD.list=null;vAdmin()}).catch(fail)}
+render();
+if(token&&sb)rpc('api_me',{p_token:token}).then(function(r){user=r;sv('mt_user',user);nav()}).catch(function(){nav()});
+</script></body></html>
