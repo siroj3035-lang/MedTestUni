@@ -65,7 +65,8 @@ pre{white-space:pre-wrap;font-size:13px;background:var(--bg);padding:10px;border
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
 <script>
 var CFG_OK=!!(window.supabase&&window.SUPABASE_URL&&window.SUPABASE_KEY&&/^https:\/\//.test(window.SUPABASE_URL)&&window.SUPABASE_URL.indexOf('ВАШ')<0);
-var sb=CFG_OK?window.supabase.createClient(window.SUPABASE_URL,window.SUPABASE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}}):null;
+var SB_URL='';try{SB_URL=new URL(String(window.SUPABASE_URL).trim()).origin}catch(e){}
+var sb=CFG_OK?window.supabase.createClient(SB_URL,String(window.SUPABASE_KEY).trim(),{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}}):null;
 var SUBJ=[['Патанатомия','🔬'],['Патофизиология','🧬'],['Фармакология','💊'],['Гигиена','🧼']];
 var FAC=['Лечебное дело','Педиатрия','Стоматология','Медико-профилактическое дело'];
 var LANG=[['ru','Русский'],['uz','O‘zbekcha']];
