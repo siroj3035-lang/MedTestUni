@@ -84,7 +84,7 @@ function nav(){var t=[['home','Главная'],['select','Тесты'],['progre
  $('nav').innerHTML=t.map(function(x){return '<button class="'+(view==x[0]?'on':'')+'" onclick="go(\''+x[0]+'\')">'+x[1]+'</button>'}).join('');
  $('usr').innerHTML=user?'<button class="btn" onclick="logout();go(\'home\')">'+esc(user.name)+' · выйти</button>':'<button class="btn pr" onclick="go(\'auth\')">Войти</button>'}
 function logout(){if(token&&sb)sb.rpc('api_logout',{p_token:token}).then(function(){},function(){});token=null;user=null;pSubj=null;ST=null;sv('mt_token',null);sv('mt_user',null)}
-function render(){nav();if(!sb){$('app').innerHTML='<div class="card"><h2>Сайт ещё не подключён к базе данных</h2><p class="mu">Откройте файл <b>config.js</b> и вставьте Project URL и publishable key из Supabase (подробности в README).</p></div>';return}var f={home:vHome,auth:vAuth,select:vSelect,modes:vModes,quiz:vQuiz,result:vResult,progress:vProgress,admin:vAdmin};f[view]()}
+function render(){nav();if(!sb){$('app').innerHTML='<div class="card"><h2>Сайт ещё не подключён к базе данных</h2><p class="mu">Откройте файл <b>config.js</b> и вставьте Project URL и publishable key из Supabase (подробности в README).</p></div>';return}var f={home:vHome,auth:vAuth,select:vSelect,modes:vModes,quiz:vQuiz,result:vResult,progress:vProgress,admin:vAdmin,answers:vAnswers};f[view]()}
 
 function vHome(){$('app').innerHTML='<h1>Готовься к модулю без хаоса</h1><p class="mu">Тесты по темам, время решения, разбор ошибок и список тем, которые стоит повторить.</p>'+
  '<div class="grid" style="margin:16px 0"><div class="card"><b>1. Выбери тему</b><br><span class="mu">Факультет → курс → язык → предмет → тема</span></div><div class="card"><b>2. Выбери режим</b><br><span class="mu">Тесты, ситуационные или контроль на 25 минут</span></div><div class="card"><b>3. Смотри прогресс</b><br><span class="mu">Какие темы повторить, а какие уже усвоены</span></div></div>'+
@@ -134,7 +134,7 @@ function vModes(){var t=topic();
  var cnt={test:t.tests,case:t.cases,control:t.tests+t.cases};
  $('app').innerHTML='<div class="crumbs"><span onclick="reset(\'topic\')">← '+esc(sel.subj)+' · '+esc(t.name)+'</span></div><h2>Режим тестирования</h2>'+
  MODES.map(function(m){var n=cnt[m[0]];return '<button class="opt" style="margin-bottom:10px;'+(n?'':'opacity:.5')+'" '+(n?'':'disabled')+' onclick="start(\''+m[0]+'\')"><b>'+m[1]+'</b><small>'+m[2]+' · вопросов: '+n+'</small></button>'}).join('')+
- (cnt.control?'':'<div class="empty">Для выбранного языка вопросов пока нет</div>')}
+ (cnt.control?'<button class="opt" style="margin-bottom:10px" onclick="openAns()"><b>📖 Ответы</b><small>Список вопросов с правильными ответами · вопросов: '+cnt.control+'</small></button>':'<div class="empty">Для выбранного языка вопросов пока нет</div>')}
 
 var NOSHUF=/(вс[её]|все)\s+(из\s+)?(выше)?перечисленн|вышеперечисленн|вс[её]\s+(ответы|варианты|верн)|верны\s+все|верно\s+все|ничего\s+из|нет\s+правильн|(^|[^а-яё])оба([^а-яё]|$)/i;
 function mixQ(x){var p=x.options.map(function(_,i){return i});
@@ -191,6 +191,16 @@ function vProgress(){if(!user)return go('auth');
  var L=pTab=='solved'?A.slice().sort(function(x,y){return String(y.lastAt).localeCompare(String(x.lastAt))}):pTab=='errors'?E:pTab=='great'?G.slice().sort(function(x,y){return y.last-x.last}):null;
  if(L)h+=L.length?'<p class="mu" style="font-size:14px">'+(pTab=='errors'?'Темы отсортированы по доле неверных ответов: сверху те, что стоит повторить.':pTab=='great'?'Последний результат 85% и выше.':'Сначала недавно решённые.')+'</p>'+L.map(prow).join(''):'<div class="empty">'+(pTab=='great'?'Пока нет тем с результатом 85% и выше':pTab=='errors'?'Ошибок пока нет':'Вы ещё не решали темы этого предмета')+'</div>';
  else h+=N.length?N.map(function(t){return '<div class="card row"><b>'+esc(t.name)+'</b><span class="badge b-no">Не начата</span></div>'}).join(''):'<div class="empty">'+(ts.length?'Вы начали все темы':'Темы по этому предмету скоро появятся')+'</div>';
+ $('app').innerHTML=h}
+/* ===== Вкладка «Ответы» ===== */
+var AN=null;
+function openAns(){rpc('api_answers',{p_token:token,p_topic:+sel.topic,p_lang:sel.lang}).then(function(r){AN={qs:r,tab:'all',full:false};view='answers';render();window.scrollTo(0,0)}).catch(function(e){alert(e.message)})}
+function vAnswers(){if(!AN)return go('modes');var t=topic(),T=AN.qs.filter(function(q){return q.type=='test'}),C=AN.qs.filter(function(q){return q.type=='case'}),L=AN.tab=='test'?T:AN.tab=='case'?C:AN.qs;
+ var h='<div class="crumbs"><span onclick="go(\'modes\')">← К режимам · '+esc(t.name)+'</span></div><h2>Ответы</h2>'+
+ '<div class="tabs" style="margin-top:0">'+[['all','Все ('+AN.qs.length+')'],['test','Тестовые ('+T.length+')'],['case','Ситуационные ('+C.length+')']].map(function(x){return '<button class="'+(AN.tab==x[0]?'on':'')+'" onclick="AN.tab=\''+x[0]+'\';vAnswers()">'+x[1]+'</button>'}).join('')+'</div>'+
+ '<label style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><input type="checkbox"'+(AN.full?' checked':'')+' style="width:auto" onchange="AN.full=this.checked;vAnswers()"> Показывать все варианты ответа</label>';
+ h+=L.length?L.map(function(q,n){return '<div class="card" style="padding:14px"><div style="display:flex;gap:10px"><span class="badge b-no" style="height:fit-content">'+(n+1)+'</span><div style="flex:1;min-width:0">'+(q.case?'<div class="case" style="margin-bottom:8px">'+esc(q.case)+'</div>':'')+'<b>'+esc(q.text)+'</b>'+
+  (AN.full?q.options.map(function(o,i){return '<div'+(i==q.answer?' class="ok" style="font-weight:600"':' class="mu"')+'>'+(i==q.answer?'✔ ':'· ')+'ABCDEF'[i]+'. '+esc(o)+'</div>'}).join(''):'<div class="ok" style="margin-top:6px">✔ '+'ABCDEF'[q.answer]+'. '+esc(q.options[q.answer])+'</div>')+'</div></div></div>'}).join(''):'<div class="empty">Вопросов нет</div>';
  $('app').innerHTML=h}
 /* ===== Админ-панель ===== */
 var AD={subj:'Патанатомия',lang:'ru',course:'',topic:'',text:'',replace:false,list:null,open:null,qs:[],msg:'',bad:false,ed:null,tab:'tests',st:null,q:'',sort:'act',sel:null,ss:null};
