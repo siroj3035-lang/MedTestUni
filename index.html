@@ -67,7 +67,7 @@ pre{white-space:pre-wrap;font-size:13px;background:var(--bg);padding:10px;border
 var CFG_OK=!!(window.supabase&&window.SUPABASE_URL&&window.SUPABASE_KEY&&/^https:\/\//.test(window.SUPABASE_URL)&&window.SUPABASE_URL.indexOf('ВАШ')<0);
 var SB_URL='';try{SB_URL=new URL(String(window.SUPABASE_URL).trim()).origin}catch(e){}
 var sb=CFG_OK?window.supabase.createClient(SB_URL,String(window.SUPABASE_KEY).trim(),{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}}):null;
-var SUBJ=[['Патанатомия','🔬'],['Патофизиология','🧬'],['Фармакология','💊'],['Гигиена','🧼']];
+var SUBS=null,SUBJ=[],SELS=[];
 var FAC=['Лечебное дело','Педиатрия','Стоматология','Медико-профилактическое дело'];
 var LANG=[['ru','Русский'],['uz','O‘zbekcha']];
 var $=function(i){return document.getElementById(i)};
@@ -79,6 +79,9 @@ var token=ld('mt_token',null),user=ld('mt_user',null),sel=ld('mt_sel',{}),view='
 async function rpc(fn,args){if(!sb)throw new Error('Сайт не настроен: заполните config.js');var r=await sb.rpc(fn,args);
  if(r.error){var m=r.error.message||'Ошибка сервера';if(/Сессия истекла/.test(m)&&token){logout();go('auth')}throw new Error(m)}return r.data}
 
+function setSubs(r){SUBS=r;SUBJ=r.map(function(x){return[x.name,x.icon]})}
+function loadSubs(){return rpc('api_subjects',{p_token:token,p_faculty:null,p_course:null}).then(setSubs)}
+function seesSub(x){return(!x.faculties.length||x.faculties.indexOf(FAC[sel.fac])>=0)&&(!x.courses.length||x.courses.indexOf(sel.course)>=0)}
 function go(v){clearInterval(tmr);if(v=='progress')ST=null;view=v;render();window.scrollTo(0,0)}
 function nav(){var t=[['home','Главная'],['select','Тесты'],['progress','Мой прогресс']];if(user&&user.is_admin)t.push(['admin','Админ']);
  $('nav').innerHTML=t.map(function(x){return '<button class="'+(view==x[0]?'on':'')+'" onclick="go(\''+x[0]+'\')">'+x[1]+'</button>'}).join('');
@@ -113,6 +116,8 @@ function pick(k,v){sel[k]=(k=='fac'||k=='course')?+v:v;if(k=='subj'||k=='lang'){
 function reset(k){var i=STEPS.indexOf(k);STEPS.slice(i).forEach(function(x){delete sel[x]});sv('mt_sel',sel);go('select')}
 function loadTopics(then){return rpc('api_topics',{p_token:token,p_subject:sel.subj,p_lang:sel.lang,p_faculty:FAC[sel.fac],p_course:sel.course}).then(function(r){TOP=r;if(then)then()}).catch(function(e){var g=$('tg');if(g)g.innerHTML='<div class="empty">'+esc(e.message)+'</div>'})}
 function drawTopics(){var g=$('tg');if(!g)return;g.innerHTML=TOP.length?'<div class="grid">'+TOP.map(function(t){return opt('topic',t.id,t.name,'Тестов: '+t.tests+' · Ситуаций: '+t.cases)}).join('')+'</div>':'<div class="empty">📚 Темы по предмету «'+esc(sel.subj)+'» скоро появятся</div>'}
+function loadSubj(){return rpc('api_subjects',{p_token:token,p_faculty:FAC[sel.fac],p_course:sel.course}).then(function(r){SELS=r;var g=$('sg');if(g)g.innerHTML=r.length?'<div class="grid">'+r.map(function(x,i){return '<button class="opt" onclick="pickSubj('+i+')"><b>'+esc(x.icon)+' '+esc(x.name)+'</b><small>Тем: '+x.topics+'</small></button>'}).join('')+'</div>':'<div class="empty">Для выбранного факультета и курса предметов пока нет</div>'}).catch(function(e){var g=$('sg');if(g)g.innerHTML='<div class="empty">'+esc(e.message)+'</div>'})}
+function pickSubj(i){sel.subj=SELS[i].name;delete sel.topic;TOP=[];sv('mt_sel',sel);render()}
 function vSelect(){
  if(!user)return go('auth');
  var st=STEPS.findIndex(function(k){return sel[k]==null}),done=st<0?5:st,h='';
@@ -124,7 +129,7 @@ function vSelect(){
  if(k=='fac')h+='<div class="grid">'+FAC.map(function(x,i){return opt('fac',i,x)}).join('')+'</div>';
  if(k=='course')h+='<div class="grid">'+[1,2,3,4,5,6].map(function(x){return opt('course',x,x+' курс')}).join('')+'</div>';
  if(k=='lang')h+='<div class="grid">'+LANG.map(function(x){return opt('lang',x[0],x[1])}).join('')+'</div>';
- if(k=='subj')h+='<div class="grid">'+SUBJ.map(function(x){return opt('subj',x[0],x[1]+' '+x[0])}).join('')+'</div><p class="mu" style="margin-top:12px">Остальные предметы появятся позже.</p>';
+ if(k=='subj'){h+='<div id="sg"><p class="mu">Загрузка…</p></div>';$('app').innerHTML=h;return loadSubj()}
  if(k=='topic'){h+='<div id="tg"><p class="mu">Загрузка…</p></div>';$('app').innerHTML=h;return loadTopics(drawTopics)}
  $('app').innerHTML=h}
 
@@ -178,11 +183,13 @@ function vResult(){var n=Q.qs.length,c=Q.pct>=80?'b-ok':Q.pct>=60?'b-wa':'b-er',
 var ML={test:'Тесты',case:'Ситуационные',control:'Контроль'};
 function prow(a){var c=a.last>=85?'b-ok':a.last>=60?'b-wa':'b-er',s=a.last>=85?'Отлично':a.last>=60?'Можно лучше':'Повторить',col=a.last>=85?'var(--ok)':a.last>=60?'var(--wa)':'var(--er)';
  return '<div class="card"><div class="row"><b>'+esc(a.name)+'</b><span class="badge '+c+'">'+s+'</span></div><div class="bar"><div style="width:'+a.last+'%;background:'+col+'"></div></div><div class="mu" style="font-size:14px">Последний результат: <b>'+a.last+'%</b> · лучший: '+a.best+'% · ошибок: <b>'+a.wr+'</b> из '+a.tot+' ('+a.err+'%) · попыток: '+a.attempts+'</div><div class="mu" style="font-size:14px;margin-top:4px">'+Object.keys(a.modes).map(function(m){return ML[m]+' '+a.modes[m].last+'%'}).join(' · ')+'</div></div>'}
+function PSC(){var vs=SUBS.filter(function(x){return seesSub(x)||ST.some(function(t){return t.subject==x.name&&t.attempts>0})});
+ return vs.length?vs.map(function(x){var ts=ST.filter(function(t){return t.subject==x.name}),d=ts.filter(function(t){return t.attempts>0}).length;return '<button class="opt" onclick="pickPS('+SUBS.indexOf(x)+')"><b>'+esc(x.icon)+' '+esc(x.name)+'</b><small>Решено тем: '+d+' из '+ts.length+'</small></button>'}).join(''):'<div class="empty">Предметов для вашего факультета и курса пока нет</div>'}
+function pickPS(i){pSubj=SUBS[i].name;pTab='solved';vProgress()}
 function vProgress(){if(!user)return go('auth');
- if(ST===null){$('app').innerHTML='<p class="mu">Загрузка…</p>';return rpc('api_stats',{p_token:token}).then(function(r){ST=r;ST.forEach(function(t){t.err=t.tot?Math.round(t.wr/t.tot*100):0});vProgress()}).catch(function(e){$('app').innerHTML='<div class="empty">'+esc(e.message)+'</div>'})}
+ if(ST===null){$('app').innerHTML='<p class="mu">Загрузка…</p>';return Promise.all([rpc('api_stats',{p_token:token}),loadSubs()]).then(function(r){ST=r[0];ST.forEach(function(t){t.err=t.tot?Math.round(t.wr/t.tot*100):0});vProgress()}).catch(function(e){$('app').innerHTML='<div class="empty">'+esc(e.message)+'</div>'})}
  var h='<h1>Мой прогресс</h1>';
- if(!pSubj){h+='<p class="mu">Выберите предмет, чтобы увидеть статистику по темам.</p><div class="grid">'+SUBJ.map(function(x){var ts=ST.filter(function(t){return t.subject==x[0]}),d=ts.filter(function(t){return t.attempts>0}).length;
-  return '<button class="opt" onclick="pSubj=\''+x[0]+'\';pTab=\'solved\';vProgress()"><b>'+x[1]+' '+x[0]+'</b><small>Решено тем: '+d+' из '+ts.length+'</small></button>'}).join('')+'</div>';return $('app').innerHTML=h}
+ if(!pSubj){h+='<p class="mu">Выберите предмет, чтобы увидеть статистику по темам.</p><div class="grid">'+PSC()+'</div>';return $('app').innerHTML=h}
  var ts=ST.filter(function(t){return t.subject==pSubj}),A=ts.filter(function(t){return t.attempts>0}),N=ts.filter(function(t){return!t.attempts}),G=A.filter(function(a){return a.last>=85}),E=A.filter(function(a){return a.wr>0}).sort(function(x,y){return y.err-x.err});
  h+='<div class="crumbs"><span onclick="pSubj=null;vProgress()">← Все предметы</span><span style="cursor:default">'+esc(pSubj)+'</span></div>';
  h+='<div class="stat"><div><b>'+A.length+' / '+ts.length+'</b>тем решено</div><div><b>'+G.length+'</b>на отлично</div><div><b>'+A.filter(function(a){return a.last<60}).length+'</b>нужно повторить</div></div>';
@@ -203,7 +210,7 @@ function vAnswers(){if(!AN)return go('modes');var t=topic(),T=AN.qs.filter(funct
   (AN.full?q.options.map(function(o,i){return '<div'+(i==q.answer?' class="ok" style="font-weight:600"':' class="mu"')+'>'+(i==q.answer?'✔ ':'· ')+'ABCDEF'[i]+'. '+esc(o)+'</div>'}).join(''):'<div class="ok" style="margin-top:6px">✔ '+'ABCDEF'[q.answer]+'. '+esc(q.options[q.answer])+'</div>')+'</div></div></div>'}).join(''):'<div class="empty">Вопросов нет</div>';
  $('app').innerHTML=h}
 /* ===== Админ-панель ===== */
-var AD={subj:'Патанатомия',lang:'ru',course:'',topic:'',text:'',replace:false,list:null,open:null,qs:[],msg:'',bad:false,ed:null,tab:'tests',st:null,q:'',sort:'act',sel:null,ss:null};
+var AD={subj:'Патанатомия',lang:'ru',course:'',topic:'',text:'',replace:false,list:null,open:null,qs:[],msg:'',bad:false,ed:null,sf:null,tab:'tests',st:null,q:'',sort:'act',sel:null,ss:null};
 function parseBank(text){var out=[],errs=[];
  text.replace(/\r/g,'').split(/\n\s*\n/).forEach(function(b){
   var L=b.split('\n').map(function(x){return x.trim()}).filter(Boolean);if(!L.length)return;
@@ -216,11 +223,11 @@ function parseBank(text){var out=[],errs=[];
   if(e)errs.push('Вопрос '+n+': '+e+' («'+L[0].slice(0,40)+'»)');else out.push({type:cs!==null?'case':'test',case:cs,q:q,options:op,answer:ans})});
  return{qs:out,errs:errs}}
 function fail(e){alert(e.message||e)}
-function vAdmin(){if(!user||!user.is_admin)return go('home');if(AD.tab=='students')return vStudents();
+function vAdmin(){if(!user||!user.is_admin)return go('home');if(SUBS===null){$('app').innerHTML='<p class="mu">Загрузка…</p>';return loadSubs().then(function(){vAdmin()}).catch(function(e){$('app').innerHTML='<div class="empty">'+esc(e.message)+'</div>'})}if(!SUBJ.some(function(x){return x[0]==AD.subj}))AD.subj=SUBJ.length?SUBJ[0][0]:'';if(AD.tab=='subjects')return vSubjects();if(AD.tab=='students')return vStudents();
  if(AD.list===null){$('app').innerHTML='<p class="mu">Загрузка…</p>';return rpc('api_admin_topics',{p_token:token}).then(function(r){AD.list=r;vAdmin()}).catch(function(e){$('app').innerHTML='<div class="empty">'+esc(e.message)+'</div>'})}
- var ex=AD.list.filter(function(t){return t.subject==AD.subj});
+ if(!SUBJ.length){$('app').innerHTML='<h1>Панель администратора</h1>'+adTabs()+'<div class="empty">Сначала добавьте предмет во вкладке «Предметы»</div>';return}var ex=AD.list.filter(function(t){return t.subject==AD.subj});
  var h='<h1>Панель администратора</h1>'+adTabs()+'<p class="mu">Добавленные темы и вопросы сразу появляются у студентов.</p><div class="card"><h2>Добавить вопросы</h2><div class="grid" style="margin-bottom:12px">'+
- '<label>Предмет<select onchange="AD.subj=this.value;vAdmin()">'+SUBJ.map(function(x){return '<option'+(x[0]==AD.subj?' selected':'')+'>'+x[0]+'</option>'}).join('')+'</select></label>'+
+ '<label>Предмет<select onchange="AD.subj=this.value;vAdmin()">'+SUBJ.map(function(x){return '<option value="'+esc(x[0])+'"'+(x[0]==AD.subj?' selected':'')+'>'+esc(x[0])+'</option>'}).join('')+'</select></label>'+
  '<label>Язык<select onchange="AD.lang=this.value">'+LANG.map(function(x){return '<option value="'+x[0]+'"'+(x[0]==AD.lang?' selected':'')+'>'+x[1]+'</option>'}).join('')+'</select></label>'+
  '<label>Курс<select onchange="AD.course=this.value"><option value="">Все курсы</option>'+[1,2,3,4,5,6].map(function(c){return '<option value="'+c+'"'+(AD.course==c?' selected':'')+'>'+c+' курс</option>'}).join('')+'</select></label></div>'+
  '<label>Тема (выберите из списка или введите новую)<input type="text" list="tl" value="'+esc(AD.topic)+'" oninput="AD.topic=this.value" placeholder="Например: Некроз" maxlength="200"></label><datalist id="tl">'+ex.map(function(t){return '<option value="'+esc(t.name)+'">'}).join('')+'</datalist>'+
@@ -260,7 +267,7 @@ function edSave(){var e=AD.ed,m=$('ed_m');function bad(t){m.textContent=t}
  var cs=e.type=='case'?e.case.trim():null;
  rpc('api_admin_update_question',{p_token:token,p_id:e.id,p_data:{type:e.type,case:cs,q:e.text.trim(),options:o,answer:e.answer}}).then(function(){
   AD.qs=AD.qs.map(function(x){return x.id==e.id?{id:x.id,lang:x.lang,type:e.type,case:cs,text:e.text.trim(),options:o,answer:e.answer}:x});AD.ed=null;AD.list=null;vAdmin()}).catch(function(er){bad(er.message)})}
-function adTabs(){return '<div class="tabs"><button class="'+(AD.tab=='tests'?'on':'')+'" onclick="AD.tab=\'tests\';vAdmin()">Тесты</button><button class="'+(AD.tab=='students'?'on':'')+'" onclick="AD.tab=\'students\';AD.sel=null;AD.st=null;vAdmin()">Студенты</button></div>'}
+function adTabs(){return '<div class="tabs"><button class="'+(AD.tab=='tests'?'on':'')+'" onclick="AD.tab=\'tests\';vAdmin()">Тесты</button><button class="'+(AD.tab=='subjects'?'on':'')+'" onclick="AD.tab=\'subjects\';AD.sf=null;vAdmin()">Предметы</button><button class="'+(AD.tab=='students'?'on':'')+'" onclick="AD.tab=\'students\';AD.sel=null;AD.st=null;vAdmin()">Студенты</button></div>'}
 function fdt(x){if(!x)return 'нет';var d=new Date(x);return d.toLocaleDateString('ru-RU')+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}
 function vStudents(){if(AD.sel)return vStudent();
  if(AD.st===null){$('app').innerHTML='<p class="mu">Загрузка…</p>';return rpc('api_admin_students',{p_token:token}).then(function(r){AD.st=r;vStudents()}).catch(function(e){$('app').innerHTML='<div class="empty">'+esc(e.message)+'</div>'})}
@@ -279,9 +286,22 @@ function vStudent(){var u=AD.sel;
  '<div class="card"><div class="row"><div><h2 style="margin:0">'+esc(u.name)+'</h2><span class="mu">логин: '+esc(u.login)+' · регистрация: '+fdt(u.created_at)+'</span></div><button class="btn" onclick="stReset()">Сбросить пароль</button></div></div>'+
  '<div class="stat"><div><b>'+u.attempts+'</b>попыток</div><div><b>'+A.length+' / '+AD.ss.length+'</b>тем решено</div><div><b>'+(u.avg==null?'—':u.avg+'%')+'</b>средний результат</div><div><b>'+A.filter(function(t){return t.last<60}).length+'</b>нужно повторить</div></div>';
  if(!A.length)h+='<div class="empty" style="margin-top:14px">Этот студент ещё не решал тесты</div>';
- SUBJ.forEach(function(x){var L=A.filter(function(t){return t.subject==x[0]}).sort(function(a,b){return b.err-a.err});if(L.length)h+='<h2 style="margin-top:18px">'+x[1]+' '+x[0]+'</h2><p class="mu" style="font-size:14px">Сверху темы с наибольшей долей ошибок.</p>'+L.map(prow).join('')});
+ SUBJ.forEach(function(x){var L=A.filter(function(t){return t.subject==x[0]}).sort(function(a,b){return b.err-a.err});if(L.length)h+='<h2 style="margin-top:18px">'+esc(x[1])+' '+esc(x[0])+'</h2><p class="mu" style="font-size:14px">Сверху темы с наибольшей долей ошибок.</p>'+L.map(prow).join('')});
  $('app').innerHTML=h}
 function stReset(){var u=AD.sel,pw=prompt('Новый пароль для «'+u.name+'» (минимум 6 символов):');if(!pw)return;rpc('api_admin_reset_password',{p_token:token,p_user:u.id,p_password:pw}).then(function(){alert('Пароль изменён. Сообщите его студенту.')}).catch(fail)}
+function vSubjects(){var f=AD.sf,h='<h1>Панель администратора</h1>'+adTabs()+'<p class="mu">Предмет показывается студентам только выбранных факультетов и курсов. Если ничего не отмечено, предмет виден всем.</p>';
+ if(f){h+='<div class="card"><h2>'+(f.id?'Изменить предмет':'Новый предмет')+'</h2><div class="grid"><label>Название<input type="text" maxlength="60" value="'+esc(f.name)+'" oninput="AD.sf.name=this.value" placeholder="Например: Микробиология"></label><label>Значок (эмодзи)<input type="text" maxlength="8" value="'+esc(f.icon)+'" oninput="AD.sf.icon=this.value"></label></div>'+
+ '<div class="mu" style="margin-top:12px">Факультеты</div><div style="display:flex;flex-wrap:wrap;gap:6px 16px;margin:6px 0">'+FAC.map(function(x,i){return '<label style="display:flex;gap:6px;align-items:center;color:var(--tx)"><input type="checkbox" style="width:auto"'+(f.faculties.indexOf(x)>=0?' checked':'')+' onchange="sfTog(\'faculties\','+i+',this.checked)"> '+esc(x)+'</label>'}).join('')+'</div>'+
+ '<div class="mu" style="margin-top:8px">Курсы</div><div style="display:flex;flex-wrap:wrap;gap:6px 16px;margin:6px 0">'+[1,2,3,4,5,6].map(function(c){return '<label style="display:flex;gap:6px;align-items:center;color:var(--tx)"><input type="checkbox" style="width:auto"'+(f.courses.indexOf(c)>=0?' checked':'')+' onchange="sfTog(\'courses\','+c+',this.checked)"> '+c+' курс</label>'}).join('')+'</div>'+
+ '<div class="err" id="sf_m"></div><div class="row"><button class="btn" onclick="AD.sf=null;vAdmin()">Отмена</button><button class="btn pr" onclick="sfSave()">Сохранить</button></div></div>'}
+ else h+='<div style="margin-bottom:14px"><button class="btn pr" onclick="AD.sf={id:null,name:\'\',icon:\'📘\',faculties:[],courses:[]};vAdmin()">+ Добавить предмет</button></div>';
+ h+=SUBS.length?SUBS.map(function(x,i){return '<div class="card"><div class="row"><div><b>'+esc(x.icon)+' '+esc(x.name)+'</b><br><span class="mu" style="font-size:14px">Факультеты: '+(x.faculties.length?esc(x.faculties.join(', ')):'все')+' · Курсы: '+(x.courses.length?x.courses.join(', '):'все')+' · тем: '+x.topics+'</span></div><div><button class="btn" onclick="sfEdit('+i+')">Изменить</button> <button class="btn" onclick="sfDel('+i+')">Удалить</button></div></div></div>'}).join(''):'<div class="empty">Предметов пока нет</div>';
+ $('app').innerHTML=h}
+function sfTog(k,v,on){var val=k=='faculties'?FAC[v]:v,a=AD.sf[k],i=a.indexOf(val);if(on&&i<0)a.push(val);if(!on&&i>=0)a.splice(i,1)}
+function sfEdit(i){var x=SUBS[i];AD.sf={id:x.id,name:x.name,icon:x.icon,faculties:x.faculties.slice(),courses:x.courses.slice()};vAdmin()}
+function sfSave(){var f=AD.sf,m=$('sf_m');if(!f.name.trim()){m.textContent='Введите название предмета';return}
+ rpc('api_admin_save_subject',{p_token:token,p_id:f.id,p_data:{name:f.name.trim(),icon:f.icon.trim(),faculties:f.faculties,courses:f.courses.slice().sort(function(a,b){return a-b})}}).then(function(){AD.sf=null;SUBS=null;AD.list=null;vAdmin()}).catch(function(e){m.textContent=e.message})}
+function sfDel(i){var x=SUBS[i];if(!confirm('Удалить предмет «'+x.name+'»'+(x.topics?' вместе с темами ('+x.topics+'), всеми их вопросами и результатами студентов':'')+'?'))return;rpc('api_admin_delete_subject',{p_token:token,p_id:x.id}).then(function(){SUBS=null;AD.list=null;vAdmin()}).catch(fail)}
 function adminDelQ(id){if(!confirm('Удалить вопрос?'))return;rpc('api_admin_delete_question',{p_token:token,p_id:id}).then(function(){AD.qs=AD.qs.filter(function(q){return q.id!=id});AD.list=null;vAdmin()}).catch(fail)}
 function adminDelT(id){if(!confirm('Удалить тему вместе со всеми вопросами и результатами студентов по ней?'))return;rpc('api_admin_delete_topic',{p_token:token,p_id:id}).then(function(){AD.open=null;AD.list=null;vAdmin()}).catch(fail)}
 render();
